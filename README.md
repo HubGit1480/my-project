@@ -4,7 +4,7 @@ Welcome to my first official deployment portfolio! This project showcases a mode
 
 ## 🔗 Live Production Website
 You can visit and interact with my live deployment right here:
-👉 **[View My Live Website](https://github.io)**
+* 👉 **[View My Live Website](https://github.io)**
 
 ---
 
