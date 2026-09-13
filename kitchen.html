@@ -170,6 +170,16 @@
             gap: 0.5rem;
         }
         .copy-btn:hover { background: #059669; }
+        .back-link {
+            color: #4f46e5;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: inline-block;
+            margin-bottom: 1rem;
+            transition: opacity 0.2s;
+        }
+        .back-link:hover { opacity: 0.7; }
     </style>
 </head>
 <body>
@@ -177,6 +187,7 @@
 <div class="container">
     <header>
         <h1>Smart Kitchen Assistant 🏡</h1>
+        <a href="index.html" class="back-link">⬅️ Back to Home</a>
         <p>Track your stock effortlessly. Mark items as "opened/used" to build your shopping list automatically.</p>
     </header>
 
@@ -207,24 +218,20 @@
             <ul id="shoppingContainer" class="shopping-list"></ul>
             <div id="shoppingEmpty" class="empty-state">All stock is currently full!</div>
             
-            <!-- Upgraded Action Button Trigger -->
             <button id="copyButton" class="copy-btn" onclick="copyShoppingList()">📋 Copy List to Send</button>
         </div>
     </div>
 </div>
 
 <script>
-    // System Data Engine: Attempts to read data out of localStorage sandbox fallback to baseline template array
-  // Bulletproof Data Core: Safe for standard and Incognito browsing windows
+    // Bulletproof Storage Handler for standard & private tabs
     let items = [];
     try {
         items = JSON.parse(localStorage.getItem('kitchenData')) || [];
     } catch (e) {
-        console.log("Storage restricted in private window. Running in-memory mode.");
         items = [];
     }
 
-    // Fallback baseline items if the data array loads completely empty
     if (items.length === 0) {
         items = [
             { id: 1, name: 'Whole Milk', category: 'Fridge', isUsed: false },
@@ -233,6 +240,7 @@
         ];
     }
 
+    // 1. RENDER FUNCTION (Stand-alone block)
     function renderApp() {
         const inventoryContainer = document.getElementById('inventoryContainer');
         const shoppingContainer = document.getElementById('shoppingContainer');
@@ -274,11 +282,14 @@
         shoppingEmpty.style.display = replacementCount === 0 ? 'block' : 'none';
         copyButton.style.display = replacementCount === 0 ? 'none' : 'flex';
         
-        // Defensive Storage Lock: Keeps button responsive even under incognito lock policies
         try {
             localStorage.setItem('kitchenData', JSON.stringify(items));
-        } catch (e) {
-            // Quietly catch private browsing exceptions without locking the UI
-        }
+        } catch (e) {}
     }
-    }
+
+    // 2. ADD ITEM FUNCTION (Separated properly)
+    function addItem() {
+        const nameInput = document.getElementById('itemName');
+        const categoryInput = document.getElementById('itemCategory');
+        const name = nameInput.value.trim();
+        const category = categoryInput.value;
