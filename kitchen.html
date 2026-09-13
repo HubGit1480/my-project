@@ -54,6 +54,8 @@
             border-radius: 15px;
             border: 1px solid #e2e8f0;
             box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+            display: flex;
+            flex-direction: column;
         }
         .card h2 {
             font-size: 1.3rem;
@@ -90,6 +92,7 @@
         .inventory-list, .shopping-list {
             list-style: none;
             margin-top: 0.5rem;
+            flex: 1;
         }
         .inventory-item {
             display: flex;
@@ -155,6 +158,18 @@
             font-style: italic;
             font-size: 0.95rem;
         }
+        .copy-btn {
+            margin-top: 1.5rem;
+            background: #10b981;
+            width: 100%;
+            padding: 0.8rem;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        .copy-btn:hover { background: #059669; }
     </style>
 </head>
 <body>
@@ -180,9 +195,7 @@
                 <button onclick="addItem()">Add</button>
             </div>
 
-            <ul id="inventoryContainer" class="inventory-list">
-                <!-- Javascript will inject stock items here -->
-            </ul>
+            <ul id="inventoryContainer" class="inventory-list"></ul>
             <div id="inventoryEmpty" class="empty-state">No items in your kitchen stock yet.</div>
         </div>
 
@@ -191,17 +204,18 @@
             <h2>🛒 Needs Replacement</h2>
             <p style="font-size: 0.85rem; color: #718096; margin-bottom: 1rem;">These items have been checked off as used or opened and require dynamic restocking:</p>
             
-            <ul id="shoppingContainer" class="shopping-list">
-                <!-- Javascript will inject replacement items here -->
-            </ul>
+            <ul id="shoppingContainer" class="shopping-list"></ul>
             <div id="shoppingEmpty" class="empty-state">All stock is currently full!</div>
+            
+            <!-- Upgraded Action Button Trigger -->
+            <button id="copyButton" class="copy-btn" onclick="copyShoppingList()">📋 Copy List to Send</button>
         </div>
     </div>
 </div>
 
 <script>
-    // Initial core template stock array
-    let items = [
+    // System Data Engine: Attempts to read data out of localStorage sandbox fallback to baseline template array
+    let items = JSON.parse(localStorage.getItem('kitchenData')) || [
         { id: 1, name: 'Whole Milk', category: 'Fridge', isUsed: false },
         { id: 2, name: 'Tomato Paste', category: 'Pantry', isUsed: false },
         { id: 3, name: 'Frozen Peas', category: 'Freezer', isUsed: false }
@@ -212,6 +226,7 @@
         const shoppingContainer = document.getElementById('shoppingContainer');
         const inventoryEmpty = document.getElementById('inventoryEmpty');
         const shoppingEmpty = document.getElementById('shoppingEmpty');
+        const copyButton = document.getElementById('copyButton');
 
         inventoryContainer.innerHTML = '';
         shoppingContainer.innerHTML = '';
@@ -222,10 +237,8 @@
         items.forEach(item => {
             activeStockCount++;
             
-            // Build Stock Item Layout
             const li = document.createElement('li');
             li.className = 'inventory-item';
-            
             li.innerHTML = `
                 <div class="item-details">
                     <input type="checkbox" id="check-${item.id}" ${item.isUsed ? 'checked' : ''} onchange="toggleItem(${item.id})">
@@ -236,27 +249,26 @@
             `;
             inventoryContainer.appendChild(li);
 
-            // If checked as used, inject into shopping list
             if (item.isUsed) {
                 replacementCount++;
                 const shopLi = document.createElement('li');
                 shopLi.className = 'shopping-item';
-                shopLi.innerHTML = `
-                    <span>🚨 Buy ${item.name} (${item.category})</span>
-                `;
+                shopLi.innerHTML = `<span>🚨 Buy ${item.name} (${item.category})</span>`;
                 shoppingContainer.appendChild(shopLi);
             }
         });
 
-        // Handle structural view updates
         inventoryEmpty.style.display = activeStockCount === 0 ? 'block' : 'none';
         shoppingEmpty.style.display = replacementCount === 0 ? 'block' : 'none';
+        copyButton.style.display = replacementCount === 0 ? 'none' : 'flex';
+        
+        // Save State Automation Layer: Write current state to local hardware sandbox data cache
+        localStorage.setItem('kitchenData', JSON.stringify(items));
     }
 
     function addItem() {
         const nameInput = document.getElementById('itemName');
         const categoryInput = document.getElementById('itemCategory');
-        
         const name = nameInput.value.trim();
         const category = categoryInput.value;
 
@@ -282,15 +294,3 @@
         });
         renderApp();
     }
-
-    function deleteItem(id) {
-        items = items.filter(item => item.id !== id);
-        renderApp();
-    }
-
-    // Run layout on start
-    renderApp();
-</script>
-
-</body>
-</html>
