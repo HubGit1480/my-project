@@ -215,11 +215,23 @@
 
 <script>
     // System Data Engine: Attempts to read data out of localStorage sandbox fallback to baseline template array
-    let items = JSON.parse(localStorage.getItem('kitchenData')) || [
-        { id: 1, name: 'Whole Milk', category: 'Fridge', isUsed: false },
-        { id: 2, name: 'Tomato Paste', category: 'Pantry', isUsed: false },
-        { id: 3, name: 'Frozen Peas', category: 'Freezer', isUsed: false }
-    ];
+  // Bulletproof Data Core: Safe for standard and Incognito browsing windows
+    let items = [];
+    try {
+        items = JSON.parse(localStorage.getItem('kitchenData')) || [];
+    } catch (e) {
+        console.log("Storage restricted in private window. Running in-memory mode.");
+        items = [];
+    }
+
+    // Fallback baseline items if the data array loads completely empty
+    if (items.length === 0) {
+        items = [
+            { id: 1, name: 'Whole Milk', category: 'Fridge', isUsed: false },
+            { id: 2, name: 'Tomato Paste', category: 'Pantry', isUsed: false },
+            { id: 3, name: 'Frozen Peas', category: 'Freezer', isUsed: false }
+        ];
+    }
 
     function renderApp() {
         const inventoryContainer = document.getElementById('inventoryContainer');
@@ -262,35 +274,11 @@
         shoppingEmpty.style.display = replacementCount === 0 ? 'block' : 'none';
         copyButton.style.display = replacementCount === 0 ? 'none' : 'flex';
         
-        // Save State Automation Layer: Write current state to local hardware sandbox data cache
-        localStorage.setItem('kitchenData', JSON.stringify(items));
+        // Defensive Storage Lock: Keeps button responsive even under incognito lock policies
+        try {
+            localStorage.setItem('kitchenData', JSON.stringify(items));
+        } catch (e) {
+            // Quietly catch private browsing exceptions without locking the UI
+        }
     }
-
-    function addItem() {
-        const nameInput = document.getElementById('itemName');
-        const categoryInput = document.getElementById('itemCategory');
-        const name = nameInput.value.trim();
-        const category = categoryInput.value;
-
-        if (!name) return;
-
-        items.push({
-            id: Date.now(),
-            name: name,
-            category: category,
-            isUsed: false
-        });
-
-        nameInput.value = '';
-        renderApp();
-    }
-
-    function toggleItem(id) {
-        items = items.map(item => {
-            if (item.id === id) {
-                return { ...item, isUsed: !item.isUsed };
-            }
-            return item;
-        });
-        renderApp();
     }
